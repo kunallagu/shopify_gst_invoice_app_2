@@ -122,9 +122,10 @@ router.get("/:orderId", async (req, res) => {
       .replace(/{{grand_total}}/g, round(grandTotal));
 
     const browser = await puppeteer.launch({
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    });
+  executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+  headless: "new",
+  args: process.env.PUPPETEER_ARGS?.split(" ")
+});
 
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "networkidle0" });
