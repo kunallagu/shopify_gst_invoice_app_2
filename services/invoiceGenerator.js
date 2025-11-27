@@ -123,5 +123,5 @@ export async function generateInvoicePDF(orderId) {
 
   await browser.close();
 
-  return pdfBuffer;
+  return { pdfBuffer, order };
 }
