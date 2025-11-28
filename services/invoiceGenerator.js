@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core"; // <--- FIX: Changed to -core
+import chromium from "chrome-aws-lambda"; // <--- FIX: Added for serverless path
 import { getOrderDetails } from "./shopify.js";
 
 export async function generateInvoicePDF(orderId) {
@@ -107,9 +108,18 @@ export async function generateInvoicePDF(orderId) {
     .replace(/{{grand_total}}/g, round(grandTotal));
 
   // ⭐ RAILWAY-SAFE PUPPETEER LAUNCH ⭐
+  const isProd = process.env.NODE_ENV === "production";
+
+  const executablePath = isProd
+    ? await chromium.executablePath
+    : undefined; // Allows puppeteer-core to find local Chrome path
+
   const browser = await puppeteer.launch({
-    headless: "new",
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    args: isProd ? chromium.args : ["--no-sandbox", "--disable-setuid-sandbox"],
+    defaultViewport: isProd ? chromium.defaultViewport : null,
+    executablePath: executablePath,
+    headless: isProd ? chromium.headless : "new", // Use 'new' for local, Chromium default for cloud
+    ignoreHTTPSErrors: true,
   });
 
   const page = await browser.newPage();
